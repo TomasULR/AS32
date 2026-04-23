@@ -1,0 +1,36 @@
+menu "SokolAudio (Smart Amp) Configuration"
+
+config SOKOL_DAC_MCLK_ENABLE
+    bool "Route I2S MCLK to PCM5102A (GPIO15)"
+    default n
+    help
+        Most cheap PCM5102A modules have an internal PLL (SCK tied to GND) and
+        do not need an external master clock. Enable this only if your module
+        explicitly requires MCLK on SCK.
+
+config SOKOL_DAC_MUTE_PIN_ENABLE
+    bool "Drive DAC_MUTE (GPIO13 -> PCM5102A XSMT/FLT)"
+    default n
+    help
+        Breakout boards rarely expose PCM5102A's XSMT pin. Enable only if the
+        pin is wired out; otherwise mute sequencing relies on the amplifier
+        MUTE pin alone.
+
+config SOKOL_STATUS_LEDS_ENABLE
+    bool "Enable status LEDs on GPIO38/39"
+    default n
+    help
+        Extra WiFi/BT status LEDs. Disable if those pins are used by something
+        else on your dev board.
+
+config SOKOL_UDP_PORT
+    int "UDP audio receiver port"
+    default 5005
+    range 1024 65535
+
+config SOKOL_RINGBUFFER_SIZE_KB
+    int "Audio ringbuffer size (KB, in PSRAM)"
+    default 2048
+    range 256 4096
+
+endmenu

@@ -1,0 +1,6 @@
+## Managed dependencies.
+## ESP-ADF components are resolved from $ADF_PATH via the root CMakeLists include,
+## so they do not need entries here. Only list registry components below.
+dependencies:
+  idf:
+    version: ">=5.2,<6.0"
