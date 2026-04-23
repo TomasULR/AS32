@@ -97,32 +97,6 @@ idf.py build
 idf.py -p COM5 flash monitor
 ```
 
-## Fancy Bits You Can Add Next
-
-If you want this README to look even more premium, add:
-- Board photos and internal wiring shots in docs/media
-- OLED UI screenshots and boot animation GIF
-- Throughput and latency benchmark charts
-- Audio pipeline timing diagram for each source mode
-
-## Roadmap
-
-- Finish FLAC/Opus decode path integration with ADF pipeline
-- Add AVRCP command routing to source manager
-- Implement OTA workflow and release channel strategy
-- Add external digital input mode (I2S daughter board)
-- Expand OLED from status view to full menu system
-
-## Contributing
-
-Contributions are welcome for transport robustness, codec integration, test harnesses, and board bring-up improvements.
-
-Please open an issue with:
-- target hardware
-- expected behavior
-- observed logs
-- minimal reproduction steps
-
 ## License
 
 Firmware in this project is BSD-3-Clause unless stated otherwise in component-level files.
