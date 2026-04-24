@@ -8,6 +8,7 @@
 #include "heap_debug.h"
 #include "bt_a2dp_sink.h"
 #include "udp_receiver.h"
+#include "ota_updater.h"
 #include "esp_console.h"
 #include "esp_log.h"
 #include "esp_check.h"
@@ -116,6 +117,59 @@ static int cmd_wifi(int argc, char **argv)
     return 1;
 }
 
+/* --- ota <url> ------------------------------------------------------------ */
+static int cmd_ota(int argc, char **argv)
+{
+    if (argc < 2) {
+        const char *st = "?";
+        switch (ota_updater_get_state()) {
+            case OTA_STATE_IDLE:        st = "idle"; break;
+            case OTA_STATE_DOWNLOADING: st = "downloading"; break;
+            case OTA_STATE_VERIFYING:   st = "verifying"; break;
+            case OTA_STATE_REBOOTING:   st = "rebooting"; break;
+            case OTA_STATE_FAILED:      st = "failed"; break;
+        }
+        printf("ota: %s, bytes=%d, last_err=%s\n",
+               st, ota_updater_get_progress_percent(), ota_updater_last_error());
+        printf("usage: ota <url>           # https:// nebo http:// (jen lokální IP)\n");
+        printf("       ota mark-valid      # potvrdit aktuální boot, zruší rollback\n");
+        return 0;
+    }
+    if (!strcmp(argv[1], "mark-valid")) {
+        esp_err_t e = ota_updater_mark_valid();
+        printf("mark-valid: %s\n", esp_err_to_name(e));
+        return e == ESP_OK ? 0 : 1;
+    }
+    esp_err_t e = ota_updater_start(argv[1]);
+    if (e != ESP_OK) {
+        printf("ota start failed: %s\n", esp_err_to_name(e));
+        return 1;
+    }
+    printf("ota: spuštěno, sleduj logy\n");
+    return 0;
+}
+
+/* --- bt <play|pause|next|prev|reset|status> ------------------------------- */
+static int cmd_bt(int argc, char **argv)
+{
+    if (argc < 2) {
+        printf("bt: %s\n", bt_a2dp_sink_is_connected() ? "connected" : "idle");
+        printf("usage: bt <play|pause|next|prev|reset|status>\n");
+        return 0;
+    }
+    if      (!strcmp(argv[1], "play"))   return bt_a2dp_sink_send(BT_AVRCP_PLAY)  == ESP_OK ? 0 : 1;
+    else if (!strcmp(argv[1], "pause"))  return bt_a2dp_sink_send(BT_AVRCP_PAUSE) == ESP_OK ? 0 : 1;
+    else if (!strcmp(argv[1], "next"))   return bt_a2dp_sink_send(BT_AVRCP_NEXT)  == ESP_OK ? 0 : 1;
+    else if (!strcmp(argv[1], "prev"))   return bt_a2dp_sink_send(BT_AVRCP_PREV)  == ESP_OK ? 0 : 1;
+    else if (!strcmp(argv[1], "reset"))  return bt_a2dp_sink_reset()              == ESP_OK ? 0 : 1;
+    else if (!strcmp(argv[1], "status")) {
+        printf("bt connected = %d\n", bt_a2dp_sink_is_connected());
+        return 0;
+    }
+    printf("usage: bt <play|pause|next|prev|reset|status>\n");
+    return 1;
+}
+
 esp_err_t serial_cli_start(void)
 {
     esp_console_repl_t *repl = NULL;
@@ -162,6 +216,12 @@ esp_err_t serial_cli_start(void)
 
     const esp_console_cmd_t reboot_cmd = { "reboot", "Reboot the device", NULL, &cmd_reboot, NULL };
     esp_console_cmd_register(&reboot_cmd);
+
+    const esp_console_cmd_t ota_cmd = { "ota", "ota <url> | mark-valid", NULL, &cmd_ota, NULL };
+    esp_console_cmd_register(&ota_cmd);
+
+    const esp_console_cmd_t bt_cmd = { "bt", "bt <play|pause|next|prev|reset|status>", NULL, &cmd_bt, NULL };
+    esp_console_cmd_register(&bt_cmd);
 
     esp_console_register_help_command();
     return esp_console_start_repl(repl);

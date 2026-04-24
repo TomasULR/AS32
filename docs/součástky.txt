@@ -1,0 +1,93 @@
+Skvělý projekt! Přečetl jsem BOM — 22 položek, orientační cena 2 940 Kč. Teď prověřím reálné ceny a dostupnost na českých eshopech.Mám dostatek dat. Dám ti teď kompletní přehled kde nakoupit, za kolik a kde BOM reálně sedí nebo ne.
+
+---
+
+## SA32 — Kde nakoupit v CZ/EU a reálné ceny
+
+### Klíčové eshopy pro tento projekt
+
+| Eshop | Zaměření | Doprava zdarma od |
+|---|---|---|
+| **gme.cz** | pasivní součástky, PSU | ~500 Kč |
+| **laskakit.cz** | moduly ESP/DAC/OLED | ~500 Kč |
+| **hadex.cz** | audio moduly, zesilovače | ~800 Kč |
+| **puhy.cz** | elektronika obecně | ~700 Kč |
+| **robotstore.cz / pajtech.cz** | displeje, moduly | proměnlivá |
+| **tme.eu** | pasivní, konektory, krabičky | ~500 Kč |
+| **allegro.cz** | levnější čínské moduly (2–5 dní) | záleží na prodejci |
+
+---
+
+### Součástka po součástce
+
+**U1 — ESP32-S3-DevKitC-1 N16R8 (16MB flash + 8MB octal PSRAM)**
+BOM: 650 Kč. Toto je nejproblematičtější položka — **přesná N16R8 verze není standardně na LaskaKit ani Hadex skladem.** LaskaKit prodává vlastní S3 devkit, ale bez octal PSRAM (R8 suffix). Doporučuji:
+- **Allegro.cz** — 316 Kč, prodejce s 65 hodnoceními a 12 recenzemi, dodání 2–4 dny — nejlevnější CZ/EU dostupná možnost
+- **Hadex.cz** — ESP32-S3-DevKitC-1 v nabídce (prověřit konkrétní variantu)
+- Záloha: **mouser.cz** nebo **digikey.cz** — originál Espressif, vyšší cena ~600–700 Kč, ale jistá verze
+⚠️ Ověř před objednávkou, že prodejce uvádí `N16R8` — někteří nabízejí N8R8 (8MB flash, 8MB PSRAM) za podobnou cenu, což je jiná varianta.
+
+**U2 — PCM5102A I²S DAC modul**
+BOM: 220 Kč. LaskaKit má GY-PCM5102 — monolitický I²S stereo DAC s linkovým výstupem na 3.5mm jacku i cinch konektorech, vhodný pro ESP32. Cena na LaskaKit cca 150–180 Kč. Na Allegro.cz od 87 Kč — úspora ~130 Kč oproti BOM, ale menší modul (bez cinch).
+
+**U3 — TPA3110D2 2×15W class-D zesilovač modul (XH-A232)**
+BOM: 220 Kč. Velká úspora — Hadex.cz/MALL.cz nabízí XH-A232 za 89 Kč. Zároveň je na puhy.cz a lhotsky-elektro.cz. Cena reálně **89–150 Kč** místo 220 Kč v BOM.
+⚠️ Ověř, že modul má přístupný **MUTE pin** (GPIO 21 ho musí řídit) — XH-A232 ho standardně má na svorce.
+
+**U4 — OLED SSD1306 128×64 I²C 0,96"**
+BOM: 130 Kč. LaskaKit má vlastní OLED 128×64 s SSD1315 (plně kompatibilní se SSD1306), s pull-up rezistory a volitelnou I²C adresou 0x3C/0x3D, napájení 3,3–5 V. Robotstore.cz nabízí 0,96" SSD1306 modul, 3,3V/5V, 128×64, rozměry 29×28mm. Cena ~80–120 Kč — BOM sedí.
+
+**S1 — Rotační enkodér EC11 (24 pulzů, taktilní)**
+BOM: 75 Kč. Na Allegro.cz 41 Kč za 15mm EC11 s tlačítkem, 20 pulzů — to je ale 20 pulzů místo 24. Pro přesně Alps EC11 24 pulzů: **Farnell.cz** nebo **TME.eu**, cena ~70–100 Kč. Pokud firmware nevyžaduje přesně 24 detentů (rotary_ec11.c to pravděpodobně konfiguruje), postačí i 20-pulzní varianta za 36–41 Kč z Allegra.
+
+**K1 — Hliníkový knoflík D-shaft ⌀20mm**
+BOM: 60 Kč. TME.eu nebo Mouser.cz — cena 50–80 Kč, sedí.
+
+**PSU — Mean Well IRM-20-24**
+BOM: 350 Kč. GME.cz, kód 332-772 — spínaný zdroj 24V/0,9A, 20W, integrované ochrany zkrat/přetížení/přepětí, certifikace IEC60601, skladem. Cena na GME cca 350–420 Kč — BOM sedí.
+
+**Pasivní součástky (C1-C4, R1-R4, F1, J1, J2, U5/U6)**
+Vše dostupné na **GME.cz** běžně za ceny z BOM nebo nižší. Kondenzátory, rezistory, pojistka s držákem, DC jack, AMS1117 — standardní sortiment, bez problémů.
+
+**SP — Reproduktory 8Ω/≥15W**
+BOM: 2× 280 Kč = 560 Kč. **Reichelt.de** (dodání do CZ 3–5 dní) nebo **TME.eu** — full-range 3–4" za 200–350 Kč/ks.
+
+**BOX — Hliníková krabička ~120×100×45mm**
+BOM: 320 Kč. Hammond 1455 série na **TME.eu** nebo **Mouser.cz** — reálně **350–550 Kč** podle přesného modelu. Tohle je položka kde BOM lehce podhodnocuje.
+
+**WIRE, STAND — Propojovací vodiče, distanční sloupky**
+GME.cz nebo AliExpress — BOM sedí (~80–100 Kč dohromady).
+
+---
+
+### Rekalkulace reálné ceny
+
+| Kategorie | BOM odhad | Reálná CZ cena | Poznámka |
+|---|---|---|---|
+| ESP32-S3 N16R8 | 650 Kč | **316–650 Kč** | Allegro nejlevněji |
+| PCM5102A DAC | 220 Kč | **87–180 Kč** | Allegro / LaskaKit |
+| TPA3110 XH-A232 | 220 Kč | **89–150 Kč** | Hadex ušetří ~130 Kč |
+| OLED SSD1306 | 130 Kč | **80–120 Kč** | LaskaKit / Robotstore |
+| EC11 enkodér | 75 Kč | **40–100 Kč** | Allegro nebo TME |
+| Knoflík | 60 Kč | 50–80 Kč | TME/Mouser |
+| IRM-20-24 PSU | 350 Kč | **350–420 Kč** | GME.cz |
+| Krabička Hammond | 320 Kč | **350–550 Kč** | TME (dražší než BOM) |
+| Reproduktory 2× | 560 Kč | **400–700 Kč** | záleží na modelu |
+| Pasivní, drobnosti | 315 Kč | **250–350 Kč** | GME.cz |
+| **CELKEM** | **2 940 Kč** | **~2 000–3 300 Kč** | |
+
+Pokud nakoupíš chytře (Allegro na moduly, GME na vše pasivní, Hadex na AMP), **reálně se dostaneš pod 2 400 Kč**. Při volbě "bezpečnějšího" zdroje (Mouser/DigiKey pro ESP32, TME pro krabičku) to půjde snadno nad 3 000 Kč.
+
+---
+
+### Hlavní doporučení pro nákup
+
+Nejlepší strategie je rozdělit do tří košíků:
+
+**GME.cz** — pasivní součástky (C1–C4, R1–R4, F1, J2, U5, U6, STAND, WIRE) a Mean Well IRM-20-24. Vše skladem, osobní odběr Praha/Brno.
+
+**LaskaKit.cz** — PCM5102A DAC modul + OLED SSD1306. Rychlé dodání, česká podpora.
+
+**Allegro.cz / Hadex.cz** — ESP32-S3 N16R8, TPA3110 XH-A232, EC11 enkodér.
+
+**TME.eu** — Hammond krabička, knoflík, reproduktory (nebo Reichelt.de jako alternativa na reproboxové oddělení).

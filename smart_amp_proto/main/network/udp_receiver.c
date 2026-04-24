@@ -1,5 +1,5 @@
 #include "udp_receiver.h"
-#include "flac_decoder.h"
+#include "stream_decoder.h"
 #include "sdkconfig.h"
 #include "esp_log.h"
 #include "esp_check.h"

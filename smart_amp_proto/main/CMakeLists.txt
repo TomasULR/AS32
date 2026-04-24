@@ -5,14 +5,16 @@ idf_component_register(
         "drivers/amp_control.c"
         "drivers/oled_ssd1306.c"
         "drivers/rotary_ec11.c"
+        "drivers/i2s_mux.c"
         "audio/i2s_dma.c"
         "audio/volume_ctrl.c"
         "audio/source_manager.c"
-        "codecs/flac_decoder.c"
+        "codecs/stream_decoder.c"
         "codecs/aac_sbc_decoder.c"
         "network/wifi_sta.c"
         "network/udp_receiver.c"
         "network/bt_a2dp_sink.c"
+        "network/ota_updater.c"
         "storage/nvs_config.c"
         "utils/serial_cli.c"
         "utils/heap_debug.c"
@@ -29,11 +31,15 @@ idf_component_register(
         esp_driver_i2s
         esp_driver_gpio
         esp_driver_i2c
+        esp_driver_uart
         esp_wifi
         esp_netif
         esp_event
+        esp_http_client
+        esp_https_ota
+        app_update
+        esp-tls
         nvs_flash
-        bt
         console
         lwip
         esp_timer
