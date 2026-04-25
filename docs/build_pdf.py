@@ -198,8 +198,10 @@ def small_table(rows, col_widths, status_col=None):
 
 # ---------- Wiring diagram (v1.1: 2-pane layout) ----------
 def wiring_diagram():
-    """760 × 540 pt — dva panely: signal flow nahoře, power tree dole."""
-    d = Drawing(760, 540)
+    """760 × 540 pt — dva panely: signal flow nahoře, power tree dole.
+    Vykresluje se v interním 540 px souřadném systému, výsledek scale-down na 490 px aby se vešel do landscape A4 frame."""
+    d = Drawing(760, 490)
+    d.transform = (1.0, 0, 0, 490.0/540.0, 0, 0)   # uniform-X, scale-Y down
 
     # Title
     d.add(String(0, 525, "Schéma zapojení v1.1 — signal flow + power tree",
@@ -239,40 +241,38 @@ def wiring_diagram():
     # =============================================================
     d.add(String(0, 490, "SIGNAL FLOW", fontName=FONT_BOLD, fontSize=10, fillColor=ACCENT))
 
-    # ESP32-S3 box (left)
-    esp_x, esp_y, esp_w, esp_h = 40, 300, 200, 175
+    # ESP32-S3 box (left). Pins jen jako značka + jméno funkce, ne dvojité GPIO+fn
+    esp_x, esp_y, esp_w, esp_h = 40, 285, 180, 195
     box(esp_x, esp_y, esp_w, esp_h, "ESP32-S3-DevKitC-1",
         "WROOM-1 N16R8  •  USB-C", fill="#ECFEFF")
-    # Left pins (I²S out → MUX, I²C → OLED)
+    # Left pins (I²S out → MUX, I²C → OLED) — jen funkční jméno uvnitř boxu
     left_pins = [
-        ("GPIO 5",  "I2S BCLK", esp_y + esp_h - 30),
-        ("GPIO 6",  "I2S LRCK", esp_y + esp_h - 45),
-        ("GPIO 7",  "I2S DOUT", esp_y + esp_h - 60),
-        ("GPIO 4",  "MUX SEL",  esp_y + esp_h - 80),
-        ("GPIO 21", "AMP MUTE", esp_y + esp_h - 95),
-        ("GPIO 8",  "I2C SDA",  esp_y + esp_h - 115),
-        ("GPIO 9",  "I2C SCL",  esp_y + esp_h - 130),
+        ("BCLK (5)",   esp_y + esp_h - 35),
+        ("LRCK (6)",   esp_y + esp_h - 48),
+        ("DOUT (7)",   esp_y + esp_h - 61),
+        ("MUX_SEL (4)", esp_y + esp_h - 80),
+        ("MUTE (21)",  esp_y + esp_h - 93),
+        ("SDA (8)",    esp_y + esp_h - 112),
+        ("SCL (9)",    esp_y + esp_h - 125),
     ]
-    for gp, fn, y in left_pins:
-        pin(esp_x + 4, y - 2, gp)
-        pin(esp_x + 50, y - 2, fn)
+    for fn, y in left_pins:
+        pin(esp_x + 6, y - 2, fn)
         d.add(Circle(esp_x, y, 2, fillColor=INK, strokeColor=INK))
-    # Right pins (UART2 to BK3266, encoder)
+    # Right pins
     right_pins = [
-        ("GPIO 10", "ENC A",   esp_y + esp_h - 30),
-        ("GPIO 11", "ENC B",   esp_y + esp_h - 45),
-        ("GPIO 12", "ENC SW",  esp_y + esp_h - 60),
-        ("GPIO 14", "BK_RST",  esp_y + esp_h - 80),
-        ("GPIO 17", "UART2_TX", esp_y + esp_h - 95),
-        ("GPIO 18", "UART2_RX", esp_y + esp_h - 110),
+        ("(10) ENC_A",   esp_y + esp_h - 35),
+        ("(11) ENC_B",   esp_y + esp_h - 48),
+        ("(12) ENC_SW",  esp_y + esp_h - 61),
+        ("(14) BK_RST",  esp_y + esp_h - 80),
+        ("(17) UART_TX", esp_y + esp_h - 93),
+        ("(18) UART_RX", esp_y + esp_h - 106),
     ]
-    for gp, fn, y in right_pins:
-        pin(esp_x + esp_w - 4, y - 2, gp, anchor="end")
-        pin(esp_x + esp_w - 50, y - 2, fn, anchor="end")
+    for fn, y in right_pins:
+        pin(esp_x + esp_w - 6, y - 2, fn, anchor="end")
         d.add(Circle(esp_x + esp_w, y, 2, fillColor=INK, strokeColor=INK))
 
-    # I²S MUX (center)
-    mux_x, mux_y, mux_w, mux_h = 290, 350, 110, 100
+    # I²S MUX (center) — y nižší aby BK3266 nahoře nezasahoval do titulu
+    mux_x, mux_y, mux_w, mux_h = 290, 310, 110, 100
     box(mux_x, mux_y, mux_w, mux_h, "I²S MUX", "NX3L4684 / 74HC4053", fill="#FEF3C7")
     pin(mux_x + 3, mux_y + mux_h - 32, "ESP_BCK")
     pin(mux_x + 3, mux_y + mux_h - 42, "ESP_LRC")
@@ -286,7 +286,7 @@ def wiring_diagram():
     pin(mux_x + mux_w - 3, mux_y + mux_h - 70, "OUT_SDA", anchor="end")
 
     # ESP I²S (3 wires) → MUX
-    for i, esp_pin_y in enumerate([esp_y + esp_h - 30, esp_y + esp_h - 45, esp_y + esp_h - 60]):
+    for i, esp_pin_y in enumerate([esp_y + esp_h - 35, esp_y + esp_h - 48, esp_y + esp_h - 61]):
         target_y = mux_y + mux_h - 32 - i * 10
         wire(esp_x, esp_pin_y, mux_x, target_y)
         arrow(mux_x, target_y)
@@ -295,40 +295,56 @@ def wiring_diagram():
     wire(esp_x, esp_y + esp_h - 80, mux_x + mux_w / 2, mux_y, color=ORANGE, width=1.3)
     arrow(mux_x + mux_w / 2, mux_y, color=ORANGE)
 
-    # BK3266 BT receiver (above MUX)
-    bk_x, bk_y, bk_w, bk_h = 460, 410, 150, 70
+    # BK3266 BT receiver — umístěn nad MUX (sdílí horizontál y), pins:
+    #   bottom = I²S out (BCK/LRC/SDA, dolů přímo do MUX top)
+    #   right  = UART control (RX/TX/RST z ESP)
+    bk_x, bk_y, bk_w, bk_h = 290, 420, 230, 50
     box(bk_x, bk_y, bk_w, bk_h, "BK3266 BT receiver",
-        "BT 5.0 BR/EDR + A2DP/AVRCP", fill="#F3E8FF")
-    pin(bk_x + 3, bk_y + 30, "RST")
-    pin(bk_x + 3, bk_y + 18, "RX")
-    pin(bk_x + 3, bk_y + 6,  "TX")
-    pin(bk_x + bk_w - 3, bk_y + 30, "I2S BCK", anchor="end")
-    pin(bk_x + bk_w - 3, bk_y + 18, "I2S LRC", anchor="end")
-    pin(bk_x + bk_w - 3, bk_y + 6,  "I2S SDA", anchor="end")
+        "BT 5.0 BR/EDR + A2DP/AVRCP  •  I²S out + UART control", fill="#F3E8FF")
+    # Bottom pins (I²S out → MUX BT inputs)
+    pin(bk_x + 30,  bk_y + 4, "BCK_B")
+    pin(bk_x + 80,  bk_y + 4, "LRC_B")
+    pin(bk_x + 130, bk_y + 4, "SDA_B")
+    # Right pins (UART)
+    pin(bk_x + bk_w - 3, bk_y + 35, "RST", anchor="end")
+    pin(bk_x + bk_w - 3, bk_y + 25, "RX",  anchor="end")
+    pin(bk_x + bk_w - 3, bk_y + 15, "TX",  anchor="end")
 
-    # ESP UART2 + RST → BK3266 (purple)
-    wire(esp_x + esp_w, esp_y + esp_h - 80, bk_x, bk_y + 30, color=PURPLE, width=1.2)
-    arrow(bk_x, bk_y + 30, color=PURPLE)
-    wire(esp_x + esp_w, esp_y + esp_h - 95, bk_x, bk_y + 18, color=PURPLE, width=1.2)
-    arrow(bk_x, bk_y + 18, color=PURPLE)
-    wire(esp_x + esp_w, esp_y + esp_h - 110, bk_x, bk_y + 6, color=PURPLE, width=1.2)
-    arrow(bk_x, bk_y + 6, color=PURPLE)
-    d.add(String(esp_x + esp_w + 8, esp_y + esp_h - 75, "UART2 + RST",
+    # ESP UART2 + RST → BK3266 (purple) — z pravé strany ESP nahoru a do BK pravé strany
+    uart_x = bk_x + bk_w + 10  # vertikální koridor vpravo od BK
+    wire(esp_x + esp_w, esp_y + esp_h - 80,  uart_x, esp_y + esp_h - 80,  color=PURPLE, width=1.2)
+    wire(esp_x + esp_w, esp_y + esp_h - 93,  uart_x - 4, esp_y + esp_h - 93, color=PURPLE, width=1.2)
+    wire(esp_x + esp_w, esp_y + esp_h - 106, uart_x - 8, esp_y + esp_h - 106, color=PURPLE, width=1.2)
+    # Vertikální koridor pak nahoru do BK pravé strany
+    wire(uart_x,     esp_y + esp_h - 80,  uart_x,     bk_y + 35, color=PURPLE, width=1.2)
+    wire(uart_x - 4, esp_y + esp_h - 93,  uart_x - 4, bk_y + 25, color=PURPLE, width=1.2)
+    wire(uart_x - 8, esp_y + esp_h - 106, uart_x - 8, bk_y + 15, color=PURPLE, width=1.2)
+    wire(uart_x,     bk_y + 35, bk_x + bk_w, bk_y + 35, color=PURPLE, width=1.2)
+    wire(uart_x - 4, bk_y + 25, bk_x + bk_w, bk_y + 25, color=PURPLE, width=1.2)
+    wire(uart_x - 8, bk_y + 15, bk_x + bk_w, bk_y + 15, color=PURPLE, width=1.2)
+    arrow(bk_x + bk_w, bk_y + 35, color=PURPLE)
+    arrow(bk_x + bk_w, bk_y + 25, color=PURPLE)
+    arrow(bk_x + bk_w, bk_y + 15, color=PURPLE)
+    d.add(String(uart_x + 4, (esp_y + esp_h + bk_y) / 2, "UART2 + RST",
                  fontName=FONT, fontSize=7, fillColor=PURPLE))
 
-    # BK3266 I²S → MUX (3 wires)
-    bk_pins_y = [bk_y + 30, bk_y + 18, bk_y + 6]
-    mux_bt_y = [mux_y + mux_h - 65, mux_y + mux_h - 75, mux_y + mux_h - 85]
-    for by, my in zip(bk_pins_y, mux_bt_y):
-        wire(bk_x, by, bk_x - 30, by)              # left out 30 px
-        wire(bk_x - 30, by, bk_x - 30, my + 5)     # down/up
-        wire(bk_x - 30, my + 5, mux_x + mux_w, my + 5)  # left to MUX
-        arrow(mux_x + mux_w, my + 5)
-
-    # Wait — BT I²S goes INTO MUX from the right side, but mux pins are on left.
-    # Re-route: BT I²S goes around to mux LEFT side from BT box.
-    # Above wires connect to right side which is wrong. Fix by drawing from BK left-side
-    # directly down then left under MUX. For simplicity remove and redraw below.
+    # BK3266 I²S OUT (bottom) → MUX BT INPUTS (top of MUX, BT_BCK/BT_LRC/BT_SDA)
+    # MUX top edge at y = mux_y + mux_h. BT pins ale jsou v originálním layoutu na levé straně.
+    # Přesunu BT pins na MUX TOP — overrides předchozí pin labels.
+    pin(mux_x + 25,  mux_y + mux_h - 4, "BT_BCK", anchor="middle")
+    pin(mux_x + 55,  mux_y + mux_h - 4, "BT_LRC", anchor="middle")
+    pin(mux_x + 85,  mux_y + mux_h - 4, "BT_SDA", anchor="middle")
+    # Mažeme vizuálně původní BT pin labely uvnitř boxu malou bílou maskou (rect)
+    d.add(Rect(mux_x + 1, mux_y + mux_h - 90, 50, 30,
+               fillColor=colors.HexColor("#FEF3C7"), strokeColor=colors.HexColor("#FEF3C7")))
+    # Přidáme zpět jen ESP_xxx labely
+    pin(mux_x + 3, mux_y + mux_h - 32, "ESP_BCK")
+    pin(mux_x + 3, mux_y + mux_h - 42, "ESP_LRC")
+    pin(mux_x + 3, mux_y + mux_h - 52, "ESP_SDA")
+    # Wires BK bottom → MUX top
+    for bx_off, mx_off in [(30, 25), (80, 55), (130, 85)]:
+        wire(bk_x + bx_off, bk_y, mux_x + mx_off, mux_y + mux_h)
+        arrow(mux_x + mx_off, mux_y + mux_h)
 
     # PCM5102A DAC (right of MUX)
     dac_x, dac_y, dac_w, dac_h = 460, 320, 150, 80
@@ -366,11 +382,11 @@ def wiring_diagram():
     pin(enc_x + 3, enc_y + 40, "A")
     pin(enc_x + 3, enc_y + 28, "B")
     pin(enc_x + 3, enc_y + 16, "SW")
-    wire(esp_x + esp_w, esp_y + esp_h - 30, enc_x, enc_y + 40)
+    wire(esp_x + esp_w, esp_y + esp_h - 35, enc_x, enc_y + 40)
     arrow(enc_x, enc_y + 40)
-    wire(esp_x + esp_w, esp_y + esp_h - 45, enc_x, enc_y + 28)
+    wire(esp_x + esp_w, esp_y + esp_h - 48, enc_x, enc_y + 28)
     arrow(enc_x, enc_y + 28)
-    wire(esp_x + esp_w, esp_y + esp_h - 60, enc_x, enc_y + 16)
+    wire(esp_x + esp_w, esp_y + esp_h - 61, enc_x, enc_y + 16)
     arrow(enc_x, enc_y + 16)
 
     # AMP TPA3110D2 (right of DAC, lower)
@@ -393,7 +409,7 @@ def wiring_diagram():
                  fontName=FONT, fontSize=7, fillColor=GREEN, textAnchor="start"))
 
     # ESP MUTE → AMP
-    wire(esp_x + 30, esp_y + esp_h - 95, esp_x + 30, amp_y + amp_h - 60)
+    wire(esp_x + 30, esp_y + esp_h - 93, esp_x + 30, amp_y + amp_h - 60)
     wire(esp_x + 30, amp_y + amp_h - 60, amp_x + 6, amp_y + amp_h - 60,
          color=WARN, width=1.4)
     arrow(amp_x + 6, amp_y + amp_h - 60, color=WARN)
@@ -678,13 +694,11 @@ def build():
          "Spáruj telefon s <b>SokolAudio</b>, dlouze stiskni enkodér (přepnutí na BT), "
          "spusť přehrávání → musí hrát."]))
 
-    story.append(PageBreak())
-
     # ---- 4. Schéma zapojení (landscape) ----
     story.append(NextPageTemplate("landscape"))
-    story.append(PageBreak())
-    story.append(NextPageTemplate("portrait"))
+    story.append(PageBreak())                      # next page = landscape
     story.append(wiring_diagram())
+    story.append(NextPageTemplate("portrait"))     # queue portrait for next break
 
     # ---- 5. Pinout + výpočet napájení ----
     story.append(PageBreak())
